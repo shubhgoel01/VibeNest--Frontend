@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { toggleMuted } from "../features/video/muted";
+import { toggleMuted } from "../features/video/muted.js";
 import { toggleLike as toggleLikeApi } from "../api/posts";
 import ProfileSection from "../components/ProfileSection";
 import CommentDialog from "../components/CommentDialog.jsx";
