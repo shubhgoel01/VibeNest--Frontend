@@ -1,6 +1,6 @@
 import { apiFetch } from '../utils/apiFetch.js';
 
-const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com';
+const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com/v1';
 
 // --- Fetch Lists ---
 export async function getFollowers(userId) {
