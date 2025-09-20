@@ -66,6 +66,18 @@ const ProfilePostCard = ({ post, onPostUpdate }) => {
 };
 
 const SimpleMediaCard = ({ fileUrl }) => {
+  // Handle empty or undefined fileUrl
+  if (!fileUrl || !Array.isArray(fileUrl) || fileUrl.length === 0) {
+    return (
+      <div className="relative rounded-lg overflow-hidden flex justify-center items-center bg-gray-800 w-full h-[300px]">
+        <div className="text-center text-gray-400">
+          <span className="material-symbols-outlined text-4xl mb-2">image</span>
+          <p>No media attached</p>
+        </div>
+      </div>
+    );
+  }
+
   const [currentVisibleMedia, setCurrentVisibleMedia] = useState(0);
   const totalMedia = fileUrl.length - 1;
 
@@ -94,7 +106,7 @@ const SimpleMediaCard = ({ fileUrl }) => {
       )}
 
       {/* Media Display */}
-      <SimpleMedia url={fileUrl[currentVisibleMedia].url} />
+      <SimpleMedia url={fileUrl[currentVisibleMedia]?.url} />
 
       {/* Media Indicators */}
       {fileUrl.length > 1 && (
@@ -114,6 +126,15 @@ const SimpleMediaCard = ({ fileUrl }) => {
 };
 
 const SimpleMedia = ({ url }) => {
+  // Handle undefined or empty URL
+  if (!url) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-400">
+        <span className="material-symbols-outlined text-4xl">broken_image</span>
+      </div>
+    );
+  }
+
   const mediaType = url.includes("video") ? "video" : "image";
 
   if (mediaType === "image") {
@@ -122,6 +143,10 @@ const SimpleMedia = ({ url }) => {
         src={url}
         alt="Post Media"
         className="w-full h-full object-contain"
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
       />
     );
   }
@@ -134,6 +159,10 @@ const SimpleMedia = ({ url }) => {
         playsInline
         className="w-full h-full object-scale-down"
         loop
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
       >
         <source src={url} type="video/mp4" />
         Your browser does not support the video tag.

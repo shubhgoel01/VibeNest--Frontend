@@ -1,17 +1,22 @@
 import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { postsAPI } from "../api/posts";
+import { createPost } from "../api/posts";
 import { validation } from "../utils/validation";
 import SmallMediaPreview from "./SmallMediaPreview";
 
+// This component handles the creation of new posts
+// It's used in the home page and allows users to share text and media
 const CreatePost = ({ onPostCreated }) => {
+  // Get current user info from Redux store
   const user = useSelector((state) => state.auth.user);
-  const [title, setTitle] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [previewUrls, setPreviewUrls] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const fileInputRef = useRef(null);
+  
+  // State for the post content
+  const [title, setTitle] = useState(""); // The main text content
+  const [selectedFiles, setSelectedFiles] = useState([]); // Files selected by user
+  const [previewUrls, setPreviewUrls] = useState([]); // URLs for previewing images/videos
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state during submission
+  const [error, setError] = useState(""); // Error messages to show user
+  const fileInputRef = useRef(null); // Reference to the hidden file input
 
   const mediaTypes = [
     {
@@ -30,22 +35,27 @@ const CreatePost = ({ onPostCreated }) => {
     },
   ];
 
+  // Handle changes to the text input
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
+    // Clear any existing errors when user starts typing
     if (error) setError("");
   };
 
+  // Process files when user selects them from their device
   const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
-    const validFiles = [];
-    const newPreviewUrls = [];
+    const files = Array.from(e.target.files); // Convert FileList to array
+    const validFiles = []; // Will store only valid files
+    const newPreviewUrls = []; // URLs for immediate preview
 
+    // Check each file to make sure it's a valid image or video
     files.forEach((file) => {
       const isImage = validation.isValidImageFile(file);
       const isVideo = validation.isValidVideoFile(file);
 
       if (isImage || isVideo) {
         validFiles.push(file);
+        // Create a temporary URL so user can see preview immediately
         newPreviewUrls.push(URL.createObjectURL(file));
       } else {
         setError(
@@ -54,6 +64,7 @@ const CreatePost = ({ onPostCreated }) => {
       }
     });
 
+    // Only add valid files to our state
     if (validFiles.length > 0) {
       setSelectedFiles((prev) => [...prev, ...validFiles]);
       setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
@@ -87,32 +98,39 @@ const CreatePost = ({ onPostCreated }) => {
     return true;
   };
 
+  // Main function that handles post submission
   const handleSubmit = async () => {
+    // First validate the form before attempting to submit
     if (!validateForm()) return;
 
     try {
-      setIsSubmitting(true);
-      setError("");
+      setIsSubmitting(true); // Show loading state
+      setError(""); // Clear any previous errors
 
+      // Prepare the data to send to the backend
       const postData = {
-        title: title.trim(),
-        media: selectedFiles,
+        title: title.trim(), // Remove extra whitespace
+        media: selectedFiles, // The actual file objects
       };
 
-      const result = await postsAPI.createPost(postData);
+      // Send the post data to our API
+      const result = await createPost(postData);
 
+      // Clear the form after successful submission
       setTitle("");
       setSelectedFiles([]);
       setPreviewUrls([]);
 
+      // Notify parent component that a new post was created
+      // This allows the home page to add the new post to the list immediately
       if (onPostCreated) {
-        onPostCreated(result.data);
+        onPostCreated(result);
       }
     } catch (err) {
       console.error("Create post error:", err);
       setError(err.message || "Failed to create post");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Always stop loading state
     }
   };
 

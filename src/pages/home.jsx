@@ -4,64 +4,73 @@ import HomePostCard from "../cards/HomePostCard";
 import { useAuth } from "../hooks/useAuth";
 import CreatePostDialog from "../dialogs/CreatePostDialog";
 
+// Main home page component that displays the feed of posts
+// Handles pagination, post creation, and displays all posts from followed users
 function Home() {
+  // Get authentication status from our custom hook
   const { isLoggedIn, isLoading: authLoading } = useAuth();
 
-  const [allPosts, setAllPosts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  // State for managing posts and UI
+  const [allPosts, setAllPosts] = useState([]); // All posts currently loaded
+  const [loading, setLoading] = useState(false); // Loading state for API calls
+  const [error, setError] = useState(null); // Error messages to display
+  const [hasMore, setHasMore] = useState(true); // Whether there are more posts to load
+  const [showCreateDialog, setShowCreateDialog] = useState(false); // Create post dialog visibility
 
-  // Pagination states
-  const [lastCreatedAt, setLastCreatedAt] = useState(null);
-  const [lastPostId, setLastPostId] = useState(null);
+  // Pagination states for cursor-based infinite scroll
+  const [lastCreatedAt, setLastCreatedAt] = useState(null); // Timestamp of last post loaded
+  const [lastPostId, setLastPostId] = useState(null); // ID of last post loaded
 
-  // Load posts
+  // Function to fetch posts from the API with pagination
   const fetchPosts = async () => {
+    // Don't fetch if user isn't logged in, already loading, or no more posts
     if (!isLoggedIn || loading || !hasMore) return;
 
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true); // Show loading spinner
+      setError(null); // Clear any previous errors
 
+      // Call the API with our pagination cursors
       const response = await getPosts({
-        lastCreatedAt,
-        lastPostId,
+        lastCreatedAt, // Where to start loading from
+        lastPostId, // Secondary cursor for posts with same timestamp
       });
 
-      const posts = response?.result || [];
-      const metaData = response?.metaData || {};
+      const posts = response?.result || []; // Get the actual posts array
+      const metaData = response?.metaData || {}; // Get pagination metadata
 
       if (posts.length > 0) {
-        // Add follow status to posts
+        // Process posts to add boolean flags for UI state
+        // The backend returns IDs, but we need booleans for the frontend
         const processedPosts = posts.map(post => ({
           ...post,
-          isLiked: !!post.likeId,
+          isLiked: !!post.likeId, // Convert ID to boolean
           isFollowed: !!post.followerId,
           isFollowRequestSent: !!post.requestSentId,
           isFollowRequestReceived: !!post.requestReceivedId
         }));
 
-        // Prevent duplicates by checking if post already exists
+        // Add new posts to existing ones, but prevent duplicates
+        // This is important for pagination - we don't want the same post twice
         setAllPosts((prev) => {
           const existingIds = new Set(prev.map(p => p._id));
           const newPosts = processedPosts.filter(post => !existingIds.has(post._id));
-          return [...prev, ...newPosts];
+          return [...prev, ...newPosts]; // Append new posts to existing ones
         });
 
-        // Update pagination cursor
+        // Update our pagination cursors for the next load
         setLastCreatedAt(metaData.lastCreatedAt);
         setLastPostId(metaData.lastPostId);
       }
 
-      // Check if there are more posts based on the number returned
-      setHasMore(posts.length >= 5); // Since pageLimit is 5
+      // Determine if there are more posts to load
+      // If we got fewer posts than requested, we've reached the end
+      setHasMore(posts.length >= 5); // Our page limit is 5
     } catch (err) {
       console.error("Error fetching posts:", err);
       setError(err.message || "Failed to fetch posts");
     } finally {
-      setLoading(false);
+      setLoading(false); // Always stop loading state
     }
   };
 
@@ -98,7 +107,7 @@ function Home() {
         </button>
       </div>
 
-      {/* Error message */}
+      
       {error && (
         <div className="p-4 text-red-400 text-center">
           Error loading posts: {error}

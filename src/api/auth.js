@@ -23,10 +23,9 @@ export async function login(credentials) {
 // Register new user
 export async function register(userData) {
   const res = await apiFetch(`${API_BASE_URL}/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(userData),
+    method: "POST",
+    credentials: "include",
+    body: userData, // browser automatically set content type as multipart/form-data
   });
 
   if (res?.data?.accessToken) {

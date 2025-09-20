@@ -28,16 +28,16 @@ export async function getReceivedRequests(userId) {
 }
 
 // --- Actions ---
-export async function acceptRequest(id, userId) {
-  const res = await apiFetch(`${API_BASE_URL}/user/${userId}/follow-request/${id}/accept`, {
+export async function acceptRequest(requestId) {
+  const res = await apiFetch(`${API_BASE_URL}/user/${requestId}/follow-request/${requestId}/accept`, {
     method: "POST",
     credentials: "include",
   });
   return res.data;
 }
 
-export async function rejectRequest(id, userId) {
-  const res = await apiFetch(`${API_BASE_URL}/user/${userId}/follow-request/${id}/reject`, {
+export async function rejectRequest(requestId) {
+  const res = await apiFetch(`${API_BASE_URL}/user/${requestId}/follow-request/${requestId}/reject`, {
     method: "DELETE",
     credentials: "include",
   });
@@ -52,16 +52,16 @@ export async function createRequest(id) {
   return res.data;
 }
 
-export async function removeFollower(id, userId) {
-  const res = await apiFetch(`${API_BASE_URL}/user/${userId}/follow/${id}`, {
+export async function removeFollower(followId) {
+  const res = await apiFetch(`${API_BASE_URL}/user/${followId}/follow/${followId}`, {
     method: "DELETE",
     credentials: "include",
   });
   return res.data;
 }
 
-export async function removeRequest(id, userId) {
-  const res = await apiFetch(`${API_BASE_URL}/user/${userId}/follow-requests/${id}`, {
+export async function removeRequest(requestId) {
+  const res = await apiFetch(`${API_BASE_URL}/user/${requestId}/follow-requests/${requestId}`, {
     method: "DELETE",
     credentials: "include",
   });

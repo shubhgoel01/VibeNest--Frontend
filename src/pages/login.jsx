@@ -97,7 +97,7 @@ function Login() {
           </button>
         </form>
 
-        <button className="text-xs cursor-pointer text-blue-500 w-fit mt-2">
+        <button onClick={() => navigate("/register")} className="text-xs cursor-pointer text-blue-500 w-fit mt-2">
           New to VibeNest? <span className="text-red-400">Register</span>
         </button>
 

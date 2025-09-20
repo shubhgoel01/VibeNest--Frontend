@@ -11,21 +11,28 @@ import {
   removeFollower 
 } from "../api/follow";
 import ProfilePagePostCard from "../components/ProfilePagePostCard";
+import FollowActionDialog from "../dialogs/FollowActionDialog";
 
+// Component for displaying a user's profile page
+// Shows user info, their posts, and follow/unfollow functionality
 const UserProfile = () => {
-  const { userId } = useParams();
-  const navigate = useNavigate();
-  const currentUser = useSelector((state) => state.auth?.user);
+  const { userId } = useParams(); // Get the user ID from the URL
+  const navigate = useNavigate(); // For navigation
+  const currentUser = useSelector((state) => state.auth?.user); // Currently logged in user
   
-  const [user, setUser] = useState(null);
-  const [userPosts, setUserPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [followLoading, setFollowLoading] = useState(false);
+  // State for the profile being viewed
+  const [user, setUser] = useState(null); // User data (name, avatar, etc.)
+  const [userPosts, setUserPosts] = useState([]); // Posts by this user
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error messages
+  
+  // State for follow functionality
+  const [followLoading, setFollowLoading] = useState(false); // Loading state for follow actions
+  const [showFollowDialog, setShowFollowDialog] = useState(false); // Dialog for follow actions
   const [followStatus, setFollowStatus] = useState({
-    isFollowRequestReceived: false,
-    isFollowRequestSent: false,
-    isFollowed: false
+    isFollowRequestReceived: false, // Did this user send me a follow request?
+    isFollowRequestSent: false, // Did I send this user a follow request?
+    isFollowed: false // Am I currently following this user?
   });
 
   // Load user data and posts
@@ -75,63 +82,69 @@ const UserProfile = () => {
     fetchUserData();
   }, [userId]);
 
-  const handleFollowAction = async () => {
+  const handleFollowAction = () => {
+    if (followLoading || !user) return;
+    
+    // If user is not following and no request sent, send follow request directly
+    if (!followStatus.isFollowed && !followStatus.isFollowRequestSent && !followStatus.isFollowRequestReceived) {
+      handleSendFollowRequest();
+    } else {
+      // Show dialog for other actions
+      setShowFollowDialog(true);
+    }
+  };
+
+  const handleSendFollowRequest = async () => {
     if (followLoading || !user) return;
     
     setFollowLoading(true);
     try {
-      if (followStatus.isFollowRequestReceived) {
-        // Accept follow request
-        await acceptRequest(user._id, currentUser._id);
-        setFollowStatus({
-          isFollowRequestReceived: false,
-          isFollowRequestSent: false,
-          isFollowed: true
-        });
-      } else if (followStatus.isFollowRequestSent) {
-        // Cancel follow request
-        await removeRequest(user._id, currentUser._id);
-        setFollowStatus({
-          isFollowRequestReceived: false,
-          isFollowRequestSent: false,
-          isFollowed: false
-        });
-      } else if (followStatus.isFollowed) {
-        // Unfollow user
-        await removeFollower(user._id, currentUser._id);
-        setFollowStatus({
-          isFollowRequestReceived: false,
-          isFollowRequestSent: false,
-          isFollowed: false
-        });
-      } else {
-        // Send follow request
-        await createRequest(user._id);
-        setFollowStatus({
-          isFollowRequestReceived: false,
-          isFollowRequestSent: true,
-          isFollowed: false
-        });
-      }
+      await createRequest(user._id);
+      setFollowStatus({
+        isFollowRequestReceived: false,
+        isFollowRequestSent: true,
+        isFollowed: false
+      });
     } catch (error) {
-      console.error("Failed to perform follow action:", error);
-      setError(error.message || "Failed to update follow status");
+      console.error("Failed to send follow request:", error);
+      setError(error.message || "Failed to send follow request");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    if (followLoading || !user || !user.requestReceivedId) return;
+    
+    setFollowLoading(true);
+    try {
+      await acceptRequest(user.requestReceivedId);
+      setFollowStatus({
+        isFollowRequestReceived: false,
+        isFollowRequestSent: false,
+        isFollowed: true
+      });
+      setShowFollowDialog(false);
+    } catch (error) {
+      console.error("Failed to accept request:", error);
+      setError(error.message || "Failed to accept request");
     } finally {
       setFollowLoading(false);
     }
   };
 
   const handleRejectRequest = async () => {
-    if (followLoading || !user) return;
+    if (followLoading || !user || !user.requestReceivedId) return;
     
     setFollowLoading(true);
     try {
-      await rejectRequest(user._id, currentUser._id);
+      await rejectRequest(user.requestReceivedId);
       setFollowStatus({
         isFollowRequestReceived: false,
         isFollowRequestSent: false,
         isFollowed: false
       });
+      setShowFollowDialog(false);
     } catch (error) {
       console.error("Failed to reject request:", error);
       setError(error.message || "Failed to reject request");
@@ -139,6 +152,47 @@ const UserProfile = () => {
       setFollowLoading(false);
     }
   };
+
+  const handleCancelRequest = async () => {
+    if (followLoading || !user || !user.requestSentId) return;
+    
+    setFollowLoading(true);
+    try {
+      await removeRequest(user.requestSentId);
+      setFollowStatus({
+        isFollowRequestReceived: false,
+        isFollowRequestSent: false,
+        isFollowed: false
+      });
+      setShowFollowDialog(false);
+    } catch (error) {
+      console.error("Failed to cancel request:", error);
+      setError(error.message || "Failed to cancel request");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    if (followLoading || !user || !user.followerId) return;
+    
+    setFollowLoading(true);
+    try {
+      await removeFollower(user.followerId);
+      setFollowStatus({
+        isFollowRequestReceived: false,
+        isFollowRequestSent: false,
+        isFollowed: false
+      });
+      setShowFollowDialog(false);
+    } catch (error) {
+      console.error("Failed to unfollow:", error);
+      setError(error.message || "Failed to unfollow user");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
 
   const getFollowButtonText = () => {
     if (followLoading) return "Loading...";
@@ -249,24 +303,13 @@ const UserProfile = () => {
             
             {/* Follow button */}
             {!isOwnProfile && (
-              <div className="flex gap-2">
-                {followStatus.isFollowRequestReceived && (
-                  <button
-                    onClick={handleRejectRequest}
-                    disabled={followLoading}
-                    className="px-4 py-2 border border-red-500 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    Reject
-                  </button>
-                )}
-                <button
-                  onClick={handleFollowAction}
-                  disabled={followLoading}
-                  className={getFollowButtonClass()}
-                >
-                  {getFollowButtonText()}
-                </button>
-              </div>
+              <button
+                onClick={handleFollowAction}
+                disabled={followLoading}
+                className={getFollowButtonClass()}
+              >
+                {getFollowButtonText()}
+              </button>
             )}
           </div>
         </div>
@@ -292,6 +335,18 @@ const UserProfile = () => {
           </div>
         )}
       </div>
+
+      {/* Follow Action Dialog */}
+      <FollowActionDialog
+        isOpen={showFollowDialog}
+        onClose={() => setShowFollowDialog(false)}
+        followStatus={followStatus}
+        onAccept={handleAcceptRequest}
+        onReject={handleRejectRequest}
+        onUnfollow={handleUnfollow}
+        onCancelRequest={handleCancelRequest}
+        isLoading={followLoading}
+      />
     </div>
   );
 };

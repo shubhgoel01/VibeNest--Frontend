@@ -1,4 +1,3 @@
-// Posts API functions
 import { apiFetch } from '../utils/apiFetch';
 
 const API_BASE_URL = 'http://localhost:5000/v1';
@@ -8,14 +7,13 @@ export const getPosts = async (cursor) => {
   const params = new URLSearchParams();
   if (cursor?.lastCreatedAt) params.append("lastCreatedAt", cursor.lastCreatedAt);
   if (cursor?.lastPostId) params.append("lastPostId", cursor.lastPostId);
-  params.append("pageLimit", 5); // Set page size
+  params.append("pageLimit", 5);
 
   const res = await apiFetch(`${API_BASE_URL}/posts?${params.toString()}`, {
     method: "GET",
     credentials: "include",
   });
   
-  // Return posts and metadata
   return res.data;
 };
 
@@ -35,8 +33,9 @@ export async function createPost(postData) {
   const res = await apiFetch(`${API_BASE_URL}/posts`, {
     method: 'POST',
     credentials: 'include',
-    body: formData, // FormData handles multipart headers
+    body: formData,
   });
+  
   return res.data;
 }
 
@@ -61,12 +60,13 @@ export async function getComments(postId, page = 1, limit = 10) {
 }
 
 // Add comment to post
-export async function addComment(postId, comment) {
+export async function addComment(postId, content) {
+  console.log("Comment Data", content)
   const res = await apiFetch(`${API_BASE_URL}/post/${postId}/comment`, {
     method: 'POST',
     credentials: 'include',
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ comment }),
+    body: JSON.stringify({ content }),
   });
   return res.data;
 }

@@ -3,28 +3,40 @@ import { useSelector, useDispatch } from "react-redux";
 import { toggleMuted } from "../features/video/muted";
 import { toggleLike as toggleLikeApi } from "../api/posts";
 import ProfileSection from "../components/ProfileSection";
-import CommentDialog from "../components/commentDialog";
+import CommentDialog from "../components/CommentDialog.jsx";
 
+
+// This component displays individual posts in the home feed
+// It handles likes, comments, and media display for each post
 const HomePostCard = ({ post, onPostUpdate }) => {
+  // State for comment dialog visibility
   const [isCommentDialogVisible, setIsCommentDialogVisible] = useState(false);
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState([]); // Comments for this specific post
+  const onAddComment = (comment) => {
+    post.commentsCount += 1
+  }
+  
+  // Like state - we keep local state for immediate UI updates
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likesCount, setLikesCount] = useState(post.likesCount);
 
-
+  // Handle like/unlike functionality with optimistic updates
+  // This means the UI updates immediately, even before the API call completes
   const handleToggleLike = async () => {
     try {
+      // Make the API call to toggle the like
       await toggleLikeApi(post._id);
 
-      // Optimistic update
+      // Update the UI immediately (optimistic update)
       if (isLiked) {
-        setLikesCount((prev) => prev - 1);
+        setLikesCount((prev) => prev - 1); // Decrease count if unliking
       } else {
-        setLikesCount((prev) => prev + 1);
+        setLikesCount((prev) => prev + 1); // Increase count if liking
       }
-      setIsLiked(!isLiked);
+      setIsLiked(!isLiked); // Toggle the like state
     } catch (error) {
       console.error("Failed to toggle like:", error);
+      // In a real app, you might want to revert the optimistic update here
     }
   };
 
@@ -39,6 +51,7 @@ const HomePostCard = ({ post, onPostUpdate }) => {
           visible={isCommentDialogVisible}
           onClose={() => setIsCommentDialogVisible(false)}
           comments={comments}
+          onAddComment={onAddComment}
         />
       )}
 
@@ -97,9 +110,24 @@ const HomePostCard = ({ post, onPostUpdate }) => {
   );
 };
 
+// Component for displaying media (images/videos) in posts
+// Handles multiple media files with navigation between them
 const MediaCard = ({ fileUrl }) => {
+  // Handle posts that don't have any media attached
+  if (!fileUrl || !Array.isArray(fileUrl) || fileUrl.length === 0) {
+    return (
+      <div className="relative rounded-lg overflow-hidden flex justify-center items-center bg-gray-800 w-full h-[450px]">
+        <div className="text-center text-gray-400">
+          <span className="material-symbols-outlined text-6xl mb-2">image</span>
+          <p>No media attached</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate total media count (for navigation)
   const totalMedia = fileUrl.length - 1;
-  const [currentVisibleMedia, setCurrentVisibleMedia] = useState(0);
+  const [currentVisibleMedia, setCurrentVisibleMedia] = useState(0); // Which media is currently shown
 
   return (
     <div className="relative rounded-lg overflow-hidden flex justify-center items-center bg-black w-full h-[450px]">
@@ -126,7 +154,7 @@ const MediaCard = ({ fileUrl }) => {
       )}
 
       {/* Media Display */}
-      <Media url={fileUrl[currentVisibleMedia].url} />
+      <Media url={fileUrl[currentVisibleMedia]?.url} />
 
       {/* Media Indicators */}
       {fileUrl.length > 1 && (
@@ -146,6 +174,15 @@ const MediaCard = ({ fileUrl }) => {
 };
 
 const Media = ({ url }) => {
+  // Handle undefined or empty URL
+  if (!url) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-400">
+        <span className="material-symbols-outlined text-6xl">broken_image</span>
+      </div>
+    );
+  }
+
   const mediaType = url.includes("video") ? "video" : "image";
   const isMuted = useSelector((state) => state.mute.value);
   const dispatch = useDispatch();
@@ -163,6 +200,10 @@ const Media = ({ url }) => {
         alt="Post Media"
         className="w-full h-full object-contain"
         id="IMAGE"
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
       />
     );
   }
@@ -177,6 +218,10 @@ const Media = ({ url }) => {
         className="w-full h-full object-scale-down"
         id="VIDEO"
         loop
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
       >
         <source src={url} type="video/mp4" />
         Your browser does not support the video tag.

@@ -11,6 +11,7 @@ import Login from './pages/login'
 import { Profile } from './pages/profile'
 import UserProfile from './pages/UserProfile'
 import SocialTabsPage from './pages/connections'
+import Register from './pages/register'
 
 
 const router = createBrowserRouter(
@@ -19,15 +20,16 @@ const router = createBrowserRouter(
        <Route element={<Layout1 />}>
         <Route index element={<Home />} />
         <Route path="/socialtabsPage" element={<SocialTabsPage />} />
-        <Route path="/user/:userId" element={<UserProfile />} />
       </Route>
 
       <Route element={<Layout2 />}>
+        <Route path="/user/:userId" element={<UserProfile />} />
         <Route path="/user/:userId/posts" element={<Profile />} />
       </Route>
 
       {/* Public Route (no layout) */}
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
     </>
   )
 );

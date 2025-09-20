@@ -3,7 +3,7 @@ import CommentCard from "./CommentCard";
 import { useSelector } from "react-redux";
 import { getComments, addComment } from "../api/posts";
 
-const CommentDialog = ({ postId, visible, onClose, dialogTitle = "Comments" }) => {
+const CommentDialog = ({ postId, visible, onClose, dialogTitle = "Comments", onAddComment }) => {
   const [commentMessage, setCommentMessage] = useState("");
   const [comments, setComments] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -19,6 +19,7 @@ const CommentDialog = ({ postId, visible, onClose, dialogTitle = "Comments" }) =
 
     try {
       const newComment = await addComment(postId, commentMessage);
+      onAddComment(newComment)
 
       // Add user details for immediate display
       newComment.ownerDetails = {
