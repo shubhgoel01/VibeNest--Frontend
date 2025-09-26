@@ -1,8 +1,8 @@
 import { apiFetch } from '../utils/apiFetch';
 import { storage } from '../utils/storage';
 
-// const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com/v1';
-const API_BASE_URL = 'http://localhost:5000/v1'
+const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com/v1';
+// const API_BASE_URL = 'http://localhost:5000/v1'
 
 // Login user
 export async function login(credentials) {

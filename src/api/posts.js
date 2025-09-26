@@ -1,7 +1,7 @@
 import { apiFetch } from '../utils/apiFetch';
 
-const API_BASE_URL = 'http://localhost:5000/v1';
-// const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com/v1';
+// const API_BASE_URL = 'http://localhost:5000/v1';
+const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com/v1';
 
 // Get posts with pagination
 export const getPosts = async (cursor) => {
