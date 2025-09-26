@@ -113,6 +113,7 @@ const CreatePost = ({ onPostCreated }) => {
         media: selectedFiles, // The actual file objects
       };
 
+      console.log("CreatePost: submitting postData", { title: postData.title, mediaCount: postData.media.length });
       // Send the post data to our API
       const result = await createPost(postData);
 
@@ -124,7 +125,25 @@ const CreatePost = ({ onPostCreated }) => {
       // Notify parent component that a new post was created
       // This allows the home page to add the new post to the list immediately
       if (onPostCreated) {
-        onPostCreated(result);
+        const enrichedPost = {
+          ...result,
+          ownerDetails: {
+            userName: user?.userName,
+            avatar: user?.avatar,
+            _id: user?._id,
+          },
+          likesCount: result?.likesCount ?? 0,
+          commentsCount: result?.commentsCount ?? 0,
+          likeId: null,
+          followerId: null,
+          requestSentId: null,
+          requestReceivedId: null,
+          isLiked: false,
+          isFollowed: false,
+          isFollowRequestSent: false,
+        };
+
+        onPostCreated(enrichedPost);
       }
     } catch (err) {
       console.error("Create post error:", err);

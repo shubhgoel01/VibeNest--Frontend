@@ -67,6 +67,8 @@ function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
+  //Object.keys gives an array of keys in the object
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -79,7 +81,7 @@ function Register() {
         submissionData.append(key, formData[key]);
       });
       if (media) {
-        submissionData.append("media", media); // add avatar
+        submissionData.append("avatar", media); // add avatar (backend expects field name 'avatar')
       }
 
       const data = await register(submissionData);
@@ -90,6 +92,8 @@ function Register() {
       setLoading(false);
     }
   };
+
+  // FormData is a special object used for sending form data, especially when uploading files.
 
   return (
     <div className="flex justify-center content-center h-full w-full bg-black">

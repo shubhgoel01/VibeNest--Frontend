@@ -1,7 +1,7 @@
 import { apiFetch } from '../utils/apiFetch';
 
-// const API_BASE_URL = 'http://localhost:5000/v1';
-const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com/v1';
+const API_BASE_URL = 'http://localhost:5000/v1';
+// const API_BASE_URL = 'https://vibenest-backend-ogbk.onrender.com/v1';
 
 // Get posts with pagination
 export const getPosts = async (cursor) => {
@@ -22,6 +22,12 @@ export const getPosts = async (cursor) => {
 export async function createPost(postData) {
   const formData = new FormData();
   formData.append('title', postData.title);
+  console.log("createPost: preparing to upload", { title: postData.title, description: postData.description, mediaCount: postData.media?.length || 0 });
+
+  if (postData.media && postData.media.length > 0) {
+    const fileNames = postData.media.map(f => f.name || f.fileName || '<unknown>');
+    console.log("createPost: media files ->", fileNames);
+  }
 
   if (postData.media && postData.media.length > 0) {
     postData.media.forEach((file) => formData.append('media', file));
@@ -31,7 +37,7 @@ export async function createPost(postData) {
     formData.append('description', postData.description);
   }
 
-  const res = await apiFetch(`${API_BASE_URL}/posts`, {
+  const res = await apiFetch(`${API_BASE_URL}/posts/post`, {
     method: 'POST',
     credentials: 'include',
     body: formData,

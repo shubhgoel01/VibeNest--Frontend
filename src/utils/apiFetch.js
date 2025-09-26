@@ -10,6 +10,7 @@ export async function apiFetch(url, options = {}) {
     ? {} 
     : { "Content-Type": "application/json" };
 
+  console.log("apiFetch: request", { url, method: options.method || 'GET', headers: options.headers, isFormData: isFormData });
   const res = await fetch(url, {
     ...options,
     credentials: "include",
@@ -21,6 +22,9 @@ export async function apiFetch(url, options = {}) {
   });
 
   const data = await res.json();
+  if (!res.ok) {
+    console.error("apiFetch: error response", { status: res.status, body: data });
+  }
   if (!res.ok) {
     console.log(data)
     throw new Error(data.message || "Something went wrong");

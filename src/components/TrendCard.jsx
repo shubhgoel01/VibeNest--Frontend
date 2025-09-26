@@ -22,7 +22,7 @@ function TrendCard({trend}) {
     if(formData[displayTag] !== displayTag)
       alert("Enter correct trend tag")
     else {
-      const response = await fetch(`http://localhost:5000/v1/trending/impression/${trend._id}`, {method: "POST"})
+      const response = await fetch(`http://localhost:5137/v1/trending/impression/${trend._id}`, {method: "POST"})
       if(!response.ok)
         alert("Request Cannot be completed")
       alert("Impression Added")

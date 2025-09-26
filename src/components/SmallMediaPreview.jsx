@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 function SmallMediaPreview({ fileUrls, removeFile }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const total = fileUrls.length;
+  const total = (fileUrls && fileUrls.length) || 0;
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
@@ -12,7 +12,7 @@ function SmallMediaPreview({ fileUrls, removeFile }) {
     setCurrentIndex((prev) => (prev < total - 1 ? prev + 1 : prev));
   };
 
-  const currentFile = fileUrls[currentIndex];
+  const currentFile = fileUrls && fileUrls[currentIndex] ? fileUrls[currentIndex] : null;
 
   return (
     <div className="relative rounded-md overflow-hidden w-32 h-36 bg-black mx-auto">
@@ -34,13 +34,15 @@ function SmallMediaPreview({ fileUrls, removeFile }) {
         <span className="material-symbols-outlined text-xs">close</span>
       </button>
 
-      <SmallMediaItem url={currentFile.url} />
+      {currentFile ? (
+        <SmallMediaItem url={currentFile.url} file={currentFile.file} />
+      ) : null}
     </div>
   );
 }
 
-function SmallMediaItem({ url }) {
-  const isVideo = url.includes("video") || url.includes(".mp4");
+function SmallMediaItem({ url, file }) {
+  const isVideo = (file && file.type && file.type.startsWith('video')) || url.includes("video") || url.includes(".mp4");
 
   if (isVideo) {
     return (

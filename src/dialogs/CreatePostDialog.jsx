@@ -1,3 +1,4 @@
+// Dialog component for creating new posts with optional media attachments.
 import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { createPost } from "../api/posts";
@@ -116,6 +117,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
         media: selectedFiles,
       };
 
+      console.log("CreatePostDialog: submitting postData", { title: postData.title, description: postData.description, mediaCount: postData.media.length });
       const result = await createPost(postData);
 
       // Reset form
@@ -125,7 +127,26 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
       setPreviewUrls([]);
 
       if (onPostCreated) {
-        onPostCreated(result);
+        // Enrich the returned post with owner details and expected front-end flags
+        const enrichedPost = {
+          ...result,
+          ownerDetails: {
+            userName: user?.userName,
+            avatar: user?.avatar,
+            _id: user?._id,
+          },
+          likesCount: result?.likesCount ?? 0,
+          commentsCount: result?.commentsCount ?? 0,
+          likeId: null,
+          followerId: null,
+          requestSentId: null,
+          requestReceivedId: null,
+          isLiked: false,
+          isFollowed: false,
+          isFollowRequestSent: false,
+        };
+
+        onPostCreated(enrichedPost);
       }
 
       onClose();
@@ -163,7 +184,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
           e.stopPropagation();
         }}
       >
-        {/* Header */}
+        
         <div className="flex justify-between items-center p-4 border-b border-[var(--borderLight)]">
           <h2 className="text-xl font-semibold">Create New Post</h2>
           <button
@@ -175,16 +196,16 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
           </button>
         </div>
 
-        {/* Content */}
+        
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Error Message */}
+          
           {error && (
             <div className="p-3 bg-red-500/20 border border-red-500 rounded text-red-400 text-sm">
               {error}
             </div>
           )}
 
-          {/* User Info */}
+          
           <div className="flex gap-3 items-center">
             <img
               src={user?.avatar?.url || "/personPlaceHolder.png"}
@@ -194,7 +215,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
             <span className="text-white font-medium">{user?.userName}</span>
           </div>
 
-          {/* Title Input */}
+          
           <div className="space-y-2">
             <label htmlFor="title" className="block text-sm font-medium text-gray-300">
               Title <span className="text-red-500">*</span>
@@ -214,7 +235,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
             </div>
           </div>
 
-          {/* Description Input */}
+          
           <div className="space-y-2">
             <label htmlFor="description" className="block text-sm font-medium text-gray-300">
               Description <span className="text-red-500">*</span>
@@ -234,7 +255,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
             </div>
           </div>
 
-          {/* Media Preview */}
+          
           {previewUrls.length > 0 && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
@@ -249,7 +270,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
             </div>
           )}
 
-          {/* File Upload Buttons */}
+          
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
               Add Media (Optional)
@@ -270,7 +291,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
           </div>
         </div>
 
-        {/* Footer */}
+        
         <div className="flex gap-3 p-4 border-t border-[var(--borderLight)]">
           <button
             onClick={handleClose}
@@ -292,7 +313,7 @@ const CreatePostDialog = ({ visible, onClose, onPostCreated }) => {
           </button>
         </div>
 
-        {/* Hidden File Input */}
+        
         <input
           ref={fileInputRef}
           type="file"

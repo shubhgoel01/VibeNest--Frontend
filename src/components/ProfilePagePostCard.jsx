@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { deletePost } from "../api/posts";
 
 function ProfilePagePostCard({post, setMyPosts}) {
   const [currentVisibleMedia, setCurrentVisibleMedia] = useState(0);
-  const totalMedia = post.fileUrl.length - 1;
+  const fileList = post?.fileUrl || [];
+  const totalMedia = Math.max(0, fileList.length - 1);
+
+  // If file list changes, ensure current index is within bounds
+  useEffect(() => {
+    if (currentVisibleMedia > totalMedia) {
+      setCurrentVisibleMedia(totalMedia);
+    }
+  }, [fileList.length, currentVisibleMedia, totalMedia]);
 
   const handleDelete = async() => {
     if (!window.confirm("Are you sure you want to delete this post?")) {
@@ -24,7 +32,7 @@ function ProfilePagePostCard({post, setMyPosts}) {
       {/* Media Display with Navigation */}
       <div className="relative w-full h-full bg-black">
         {/* Navigation Arrows */}
-        {post.fileUrl.length > 1 && (
+  {fileList.length > 1 && (
           <div className="absolute z-20 flex justify-between w-full px-2 text-white top-1/2 transform -translate-y-1/2">
             <button
               className="cursor-pointer bg-black/70 hover:bg-black/90 rounded-full p-2 transition-all duration-200 flex items-center justify-center"
@@ -46,12 +54,12 @@ function ProfilePagePostCard({post, setMyPosts}) {
         )}
 
         {/* Media Display */}
-        <SimpleMedia url={post.fileUrl[currentVisibleMedia].url} />
+  <SimpleMedia url={fileList[currentVisibleMedia]?.url} />
 
         {/* Media Indicators */}
-        {post.fileUrl.length > 1 && (
+  {fileList.length > 1 && (
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-            {post.fileUrl.map((_, i) => (
+            {fileList.map((_, i) => (
               <div
                 key={i}
                 className={`w-2 h-2 rounded-full transition-all duration-200 ${
@@ -82,6 +90,8 @@ function ProfilePagePostCard({post, setMyPosts}) {
 }
 
 const SimpleMedia = ({ url }) => {
+  if (!url) return null;
+
   const mediaType = url.includes("video") ? "video" : "image";
 
   if (mediaType === "image") {

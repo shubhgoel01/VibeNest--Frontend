@@ -13,7 +13,7 @@ import {
 import ProfilePagePostCard from "../components/ProfilePagePostCard";
 import FollowActionDialog from "../dialogs/FollowActionDialog";
 
-// Component for displaying a user's profile page
+// Component for displaying a user's profile page (shown for both myProfile and other Users profile)
 // Shows user info, their posts, and follow/unfollow functionality
 const UserProfile = () => {
   const { userId } = useParams(); // Get the user ID from the URL
@@ -36,6 +36,7 @@ const UserProfile = () => {
   });
 
   // Load user data and posts
+  // Why i am adding followStatus data with every post, because i was thinking to create a separate page for posts, so it will be sueful there, showing follow status on every post and perform operations accordingly
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId) return;
